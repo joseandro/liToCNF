@@ -4,18 +4,6 @@
 from random import randint
 import numbers
 
-
-# Method getInequalities
-# n the following parameters:
-#    C: integer, where:
-#       coefficients ai E [-C, +C]
-#       b E [0, C]
-#   N: integer, number of variables
-#   M: integer, number of inequalities .
-# Return type: dictionary
-
-#
-
 def getInequations(C, N, M):
     """
     This function creates and returns inequations based on its given
