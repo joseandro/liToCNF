@@ -4,7 +4,7 @@
 from random import randint
 import numbers
 
-def getInequations(C, N, M):
+def getRandomInequations(C, N, M):
     """
     This function creates and returns inequations based on its given
     parameters.
@@ -15,14 +15,12 @@ def getInequations(C, N, M):
     @param N: Number of variables.
     @type  M: int
     @param M: Number of inequalities.
-    @rtype:   dict
-    @return:
+    @rtype:   list
+    @return: A list containing dicts:
      a: coefficients,
      s: expression's signal
-         0 : less than
-         1 : less or equal than
-         2 : bigger or equal than
-         3 : bigger than
+         0 : less or equal than
+         1 : bigger or equal than
      b: inequations' right side result.
     """
     result = []
@@ -32,7 +30,7 @@ def getInequations(C, N, M):
             for j in range(N):  # Number of coefficients
                 a.append(randint(-1 * C, C))
             b = randint(0, C)
-            s = randint(0, 3)  # Expression signal
+            s = randint(0, 1)  # Expression signal
             dicta = {"a": a, "s": s, "b": b}
             result.append(dicta)
     else:
