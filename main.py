@@ -3,7 +3,7 @@ import iNorm
 import linearT
 
 def main():
-    inequations = iGen.getRandomInequations(10, 5, 13)
+    inequations = iGen.getRandomInequations(100, 3, 20)
     iNorm.normalize(inequations) # lists are mutable objects, normalize will change it
 
     linearT.transform(inequations)

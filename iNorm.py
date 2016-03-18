@@ -22,7 +22,7 @@ def normalize(iq):
         for i, valA in enumerate(a) :
             if valA < 0 :
                 a[i] = -1*valA
-                x.append(i) # store the positions where coefficients are negative
+                x.append(i) # store the a's indexes where coefficients are negative
                 b += -1*valA
 
         val['a'] = a
