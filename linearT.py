@@ -1,5 +1,6 @@
 # This module transforms inequations to CNF in linear time
 # Author: Joseandro Luiz
+# Based on JP Warners' paper on linear transformation
 
 import numpy as np
 global_index = 0
@@ -21,9 +22,6 @@ def binarySum(a, b):
 
 def binaryMult(a, b):
     return bin(a * b)
-
-def calculateIRightSide(b, M):
-    pass
 
 def getUniqueID():
     global global_index
@@ -110,6 +108,30 @@ def transPlus(U, V, W, M):
 
     return result
 
+def calculateIRightSide(b, M):
+    b = str("{0:b}".format(b))
+    result = []
+
+    p = []
+    for k in range(0, M):
+        p.append(getUniqueID())
+
+    for k in range(0, M):
+        clause = []
+        if len(b) - 1 >= k:
+            if ( int(b[k]) == 1):
+                clause.append(-1*p[k])
+                for j in range(k+1, M):
+                    clause.append(-1*p[j])
+                result.append(clause)
+        else:
+            clause.append(-1*p[k])
+            for j in range(k+1, M):
+                clause.append(-1*p[j])
+            result.append(clause)
+
+    return result
+
 
 def transAiAndDoTransMult(ai, isNeg, M):
     # keep in mind that negative coefficients require
@@ -131,11 +153,11 @@ def transAiAndDoTransMult(ai, isNeg, M):
             else:
                 # k E/ Ba(i)
                 # -pk(i)
-                result.append(-1*getUniqueID())
+                result.append([-1*getUniqueID()])
         else:
             # k E/ Ba(i)
             # -pk(i)
-            result.append(-1*getUniqueID())
+            result.append([-1*getUniqueID()])
     return result
 
 def calculateILeftSide(a, x, M):
@@ -157,7 +179,7 @@ def transform(iq):
     @rtype:   list
     @return: A list containing dicts in the format DIMACS:
     """
-
+    result = []
     for i, v in enumerate(iq) :
         a = v['a']
 
@@ -171,8 +193,6 @@ def transform(iq):
         iLeftSide = calculateILeftSide(a,x, M)
         iRightSide = calculateIRightSide(b, M)
 
-        print("Left side : ")
-        print(iLeftSide)
+        result.append(iLeftSide+iRightSide) # Concatenate both lists containing CNFs only data
 
-        print("Right side : ")
-        print(iRightSide)
+    return result
