@@ -3,7 +3,12 @@
 # Based on JP Warners' paper on linear transformation
 
 import numpy as np
+
 global_index = 0
+pk = []
+pk_c = []
+ck_kminus = []
+ck_kplus = []
 
 def splitArray(arr):
     ceiling = arr[:len(arr)/2]
@@ -11,26 +16,74 @@ def splitArray(arr):
 
     return {'ceiling': ceiling, 'floor' : floor }
 
+def getUniqueId():
+    global global_index
+    global_index += 1
+    return global_index-1
+
+def resetUniqueIdSeeder():
+    global global_index
+    global_index = 0
+
+def populateControls(M):
+    global pk, pk_c, ck_kminus, ck_kplus
+    resetUniqueIdSeeder()
+
+    pk = []
+    pk_c = []
+    ck_kminus = []
+    ck_kplus = []
+    for i in range(0, M):
+        pk.insert(i, getUniqueId())
+        pk_c.insert(i, getUniqueId())
+        ck_kminus.insert(i, getUniqueId())
+        ck_kplus.insert(i, getUniqueId())
+
+def transAiAndDoTransMult(ai, isNeg, M):
+    # keep in mind that negative coefficients require
+    # pxi to be negated as well in here
+    ai = str("{0:b}".format(ai))
+    result = []
+    nOfI = 0
+
+    # Formula 16
+    for i in range(0, M):
+        if len(ai) - 1 >= i :
+            if int(ai[i]) == 1:
+                nOfI += 1
+                # k E Ba(i)
+                # (-pk(i) - pxi) * (pk(i) + pxi)
+                if isNeg :
+                    result.append([-1 * getUniqueId(), -1 * getUniqueId()])
+                    result.append([getUniqueId(), getUniqueId()])
+                else:
+                    # (-pk(i) + pxi) * (pk(i) - pxi)
+                    result.append([-1 * getUniqueId(), getUniqueId()])
+                    result.append([getUniqueId(), -1 * getUniqueId()])
+            else:
+                # k E/ Ba(i)
+                # -pk(i)
+                result.append([-1 * getUniqueId()])
+        else:
+            # k E/ Ba(i)
+            # -pk(i)
+            result.append([-1 * getUniqueId()])
+
+    if  int(nOfI+M) != int(len(result)) :
+        print("Problem found during execution, number of clauses != M + |{K=1 in Bai}|")
+        print("Number of clauses = ",len(result), "M + |{K=1 in Bai} = ", M+nOfI)
+
+    return result
+
+
 def calculateM(_arr):
     arr =  sorted(_arr)
     aMax = arr[-1]
 
-    return np.ceil(np.log2(aMax))
+    if aMax == 0:
+        return 1
 
-def binarySum(a, b):
-    return bin(a + b)
-
-def binaryMult(a, b):
-    return bin(a * b)
-
-def getUniqueID():
-    global global_index
-    global_index += 1
-    return global_index
-
-def resetUniqueIDSeeder():
-    global global_index
-    global_index = 0
+    return 1 + int(round(np.ceil(np.log2(aMax))))
 
 def transAiXi(U, a, x, M):
     if len(U) == 1:
@@ -40,33 +93,37 @@ def transAiXi(U, a, x, M):
     V = _['floor']
     W = _['ceiling']
 
-    return transAiXi(V, a, x, M) + transAiXi(W, a, x, M) + transPlus(U, V, W, M)
+    return transAiXi(V, a, x, M) + transAiXi(W, a, x, M) + transPlus(calculateM(U))
 
-def transPlus(U, V, W, M):
+def transPlus(M):
     result = []
 
-    p0_U = getUniqueID()
-    p0_V = getUniqueID()
-    p0_W = getUniqueID()
-    c01_U = getUniqueID()
+    p0_U = getUniqueId()
+    p0_V = getUniqueId()
+    p0_W = getUniqueId()
+    c01_U = getUniqueId()
 
     # Formula 11
     result.append([p0_U, p0_V,-1*p0_W])
     result.append([p0_U, -1*p0_V, p0_W])
-    result.append([-1*p0_U, -1*p0_V,-1*p0_W])
-    result.append([-1*p0_U, p0_V, p0_W])
+    # Equivalence by implication:
+    # All clauses beginning with a negated proposition letter are left out
+    # result.append([-1*p0_U, -1*p0_V,-1*p0_W])
+    # result.append([-1*p0_U, p0_V, p0_W])
 
     # Formula 12
     result.append([c01_U, -1*p0_V, -1*p0_W])
-    result.append([-1*c01_U, p0_V])
-    result.append([-1*c01_U, p0_W])
+    # Equivalence by implication:
+    # All clauses beginning with a negated proposition letter are left out
+    # result.append([-1*c01_U, p0_V])
+    # result.append([-1*c01_U, p0_W])
 
-    for i in range(0, M):
-        pk_U = getUniqueID()
-        pk_V = getUniqueID()
-        pk_W = getUniqueID()
-        ck_m1_k_U = getUniqueID()
-        ck_k_p1_U = getUniqueID()
+    for i in range(0, M): #loops from 0 up to M-1
+        pk_U = getUniqueId()
+        pk_V = getUniqueId()
+        pk_W = getUniqueId()
+        ck_m1_k_U = getUniqueId()
+        ck_k_p1_U = getUniqueId()
 
         if i == 0:
             # Formula 13
@@ -74,18 +131,23 @@ def transPlus(U, V, W, M):
             result.append([p0_U, -1*p0_V, -1*p0_W, -1*c01_U])
             result.append([p0_U, p0_V, -1*p0_W, c01_U])
             result.append([p0_U, p0_V, p0_W, -1*c01_U])
-            result.append([-1*p0_U, p0_V, p0_W, c01_U])
-            result.append([-1*p0_U, p0_V, -1*p0_W, -1*c01_U])
-            result.append([-1*p0_U, -1*p0_V, -1*p0_W, c01_U])
-            result.append([-1*p0_U, -1*p0_V, p0_W, -1*c01_U])
+            # Equivalence by implication:
+            # All clauses beginning with a negated proposition letter are left out
+            # result.append([-1*p0_U, p0_V, p0_W, c01_U])
+            # result.append([-1*p0_U, p0_V, -1*p0_W, -1*c01_U])
+            # result.append([-1*p0_U, -1*p0_V, -1*p0_W, c01_U])
+            # result.append([-1*p0_U, -1*p0_V, p0_W, -1*c01_U])
 
-            # Formula 14
-            result.append([ck_k_p1_U, -1*pk_V, -1*pk_W])
-            result.append([ck_k_p1_U, -1*pk_V, -1*c01_U])
-            result.append([ck_k_p1_U, -1*pk_W, -1*c01_U])
-            result.append([-1*ck_k_p1_U, pk_V, pk_W])
-            result.append([-1*ck_k_p1_U, pk_V, c01_U])
-            result.append([-1*ck_k_p1_U, pk_W, c01_U])
+            if (i < M - 1):
+                # Formula 14
+                result.append([ck_k_p1_U, -1*p0_V, -1*p0_W])
+                result.append([ck_k_p1_U, -1*p0_V, -1*c01_U])
+                result.append([ck_k_p1_U, -1*p0_W, -1*c01_U])
+                # Equivalence by implication:
+                # All clauses beginning with a negated proposition letter are left out
+                # result.append([-1*ck_k_p1_U, p0_V, p0_W])
+                # result.append([-1*ck_k_p1_U, p0_V, c01_U])
+                # result.append([-1*ck_k_p1_U, p0_W, c01_U])
 
         else:
             # Formula 13
@@ -93,76 +155,57 @@ def transPlus(U, V, W, M):
             result.append([pk_U, -1*pk_V, -1*pk_W, -1*ck_m1_k_U])
             result.append([pk_U, pk_V, -1*pk_W, ck_m1_k_U])
             result.append([pk_U, pk_V, pk_W, -1*ck_m1_k_U])
-            result.append([-1*pk_U, pk_V, pk_W, ck_m1_k_U])
-            result.append([-1*pk_U, pk_V, -1*pk_W, -1*ck_m1_k_U])
-            result.append([-1*pk_U, -1*pk_V, -1*pk_W, ck_m1_k_U])
-            result.append([-1*pk_U, -1*pk_V, pk_W, -1*ck_m1_k_U])
+            # Equivalence by implication:
+            # All clauses beginning with a negated proposition letter are left out
+            # result.append([-1*pk_U, pk_V, pk_W, ck_m1_k_U])
+            # result.append([-1*pk_U, pk_V, -1*pk_W, -1*ck_m1_k_U])
+            # result.append([-1*pk_U, -1*pk_V, -1*pk_W, ck_m1_k_U])
+            # result.append([-1*pk_U, -1*pk_V, pk_W, -1*ck_m1_k_U])
 
             # Formula 14
-            result.append([ck_k_p1_U, -1*pk_V, -1*pk_W])
-            result.append([ck_k_p1_U, -1*pk_V, -1*ck_m1_k_U])
-            result.append([ck_k_p1_U, -1*pk_W, -1*ck_m1_k_U])
-            result.append([-1*ck_k_p1_U, pk_V, pk_W])
-            result.append([-1*ck_k_p1_U, pk_V, ck_m1_k_U])
-            result.append([-1*ck_k_p1_U, pk_W, ck_m1_k_U])
+            if (i < M - 1):
+                result.append([ck_k_p1_U, -1*pk_V, -1*pk_W])
+                result.append([ck_k_p1_U, -1*pk_V, -1*ck_m1_k_U])
+                result.append([ck_k_p1_U, -1*pk_W, -1*ck_m1_k_U])
+                # Equivalence by implication:
+                # All clauses beginning with a negated proposition letter are left out
+                # result.append([-1*ck_k_p1_U, pk_V, pk_W])
+                # result.append([-1*ck_k_p1_U, pk_V, ck_m1_k_U])
+                # result.append([-1*ck_k_p1_U, pk_W, ck_m1_k_U])
+
+    if len(result) != 7*M:
+        print("Problem found, number of clauses != 7*M")
+        print("Number of clauses = ",len(result), "7*M = ", 7*M)
 
     return result
+
+def calculateILeftSide(a, x, M):
+    populateControls(M)
+    left = transAiXi(range(0, len(a)), a, x, M)
+
+    return left
+
 
 def calculateIRightSide(b, M):
     b = str("{0:b}".format(b))
     result = []
-
     p = []
+    counter = 0
     for k in range(0, M):
-        p.append(getUniqueID())
+        p.append(getUniqueId())
 
     for k in range(0, M):
         clause = []
-        if len(b) - 1 >= k:
-            if ( int(b[k]) == 1):
-                clause.append(-1*p[k])
-                for j in range(k+1, M):
-                    clause.append(-1*p[j])
-                result.append(clause)
-        else:
+        if (len(b) -1 >= k and int(b[k]) == 0) or (len(b) -1 < k):
+            counter += 1
             clause.append(-1*p[k])
-            for j in range(k+1, M):
-                clause.append(-1*p[j])
+            if len(b) - 1 >= k: # we still can loop through B
+                for j in range(k+1, M):
+                    if len(b) -1 >= j and int(b[j]) == 1:
+                        clause.append(-1*p[j])
             result.append(clause)
 
     return result
-
-
-def transAiAndDoTransMult(ai, isNeg, M):
-    # keep in mind that negative coefficients require
-    # pxi to be negated as well in here
-    ai = str("{0:b}".format(ai))
-    result = []
-    for i in range(0, M):
-        if len(ai) - 1 >= i :
-            if int(ai[i]) == 1:
-                # k E Ba(i)
-                # (-pk(i) - pxi) * (pk(i) + pxi)
-                if isNeg :
-                    result.append([-1*getUniqueID(), -1*getUniqueID()])
-                    result.append([getUniqueID(), getUniqueID()])
-                else:
-                    # (-pk(i) + pxi) * (pk(i) - pxi)
-                    result.append([-1*getUniqueID(), getUniqueID()])
-                    result.append([getUniqueID(), -1*getUniqueID()])
-            else:
-                # k E/ Ba(i)
-                # -pk(i)
-                result.append([-1*getUniqueID()])
-        else:
-            # k E/ Ba(i)
-            # -pk(i)
-            result.append([-1*getUniqueID()])
-    return result
-
-def calculateILeftSide(a, x, M):
-    resetUniqueIDSeeder()
-    return transAiXi(range(0, len(a)), a, x, M)
 
 def transform(iq):
     """
@@ -188,11 +231,11 @@ def transform(iq):
 
         x = v['x']
         b = v['b']
-        M = int(round(calculateM(a)))
+        M = calculateM(a)
 
         iLeftSide = calculateILeftSide(a,x, M)
         iRightSide = calculateIRightSide(b, M)
 
         result.append(iLeftSide+iRightSide) # Concatenate both lists containing CNFs only data
-
+        # print("Total number of clauses = ", len(iLeftSide+iRightSide))
     return result
