@@ -34,15 +34,15 @@ def populateControls(M):
 
     # We split it this way so that these lists will contain continuous
     # intervals.
-    for i in range(0, M):
+    for i in range(0, M+1):
         px.append(getUniqueId())
 
-    for i in range(0, M):
+    for i in range(0, M+1):
         pk.append(getUniqueId())
 
-    for i in range(0, M):
+    for i in range(0, M+1):
         arr = []
-        for j in range(0, M):
+        for j in range(0, M+1):
             arr.append(j)
         ck.append(arr)
 
@@ -186,7 +186,7 @@ def transform(iq):
     @return: A list containing dicts in the format DIMACS:
     """
     result = []
-    for i, v in enumerate(iq) :
+    for v in iq :
         a = v['a']
 
         if a == False:
