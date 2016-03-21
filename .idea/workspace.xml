@@ -2,12 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="39b29e58-56f3-4d19-827c-8bdca093ab92" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/hornT.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/iGen.py" afterPath="$PROJECT_DIR$/iGen.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/iNorm.py" afterPath="$PROJECT_DIR$/iNorm.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/linearT.py" afterPath="$PROJECT_DIR$/linearT.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.py" afterPath="$PROJECT_DIR$/main.py" />
     </list>
     <ignored path="liToCNF.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -32,7 +27,7 @@
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="55" column="41" selection-start-line="55" selection-start-column="41" selection-end-line="55" selection-end-column="41" />
+              <caret line="55" column="40" selection-start-line="55" selection-start-column="40" selection-end-line="55" selection-end-column="40" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -43,8 +38,8 @@
       <file leaf-file-name="linearT.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/linearT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-1.11">
-              <caret line="104" column="46" selection-start-line="104" selection-start-column="46" selection-end-line="104" selection-end-column="46" />
+            <state vertical-scroll-proportion="0.54">
+              <caret line="159" column="27" selection-start-line="159" selection-start-column="27" selection-end-line="159" selection-end-column="27" />
               <folding />
             </state>
           </provider>
@@ -357,7 +352,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="33" column="12" selection-start-line="33" selection-start-column="12" selection-end-line="33" selection-end-column="44" />
           <folding>
-            <element signature="e#88#114#0" expanded="true" />
+            <element signature="e#88#114#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -467,7 +462,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="39" column="35" selection-start-line="39" selection-start-column="35" selection-end-line="39" selection-end-column="35" />
           <folding>
-            <element signature="e#88#114#0" expanded="true" />
+            <element signature="e#88#114#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -483,7 +478,7 @@
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="55" column="41" selection-start-line="55" selection-start-column="41" selection-end-line="55" selection-end-column="41" />
+          <caret line="55" column="40" selection-start-line="55" selection-start-column="40" selection-end-line="55" selection-end-column="40" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>
@@ -492,8 +487,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/linearT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.11">
-          <caret line="104" column="46" selection-start-line="104" selection-start-column="46" selection-end-line="104" selection-end-column="46" />
+        <state vertical-scroll-proportion="0.54">
+          <caret line="159" column="27" selection-start-line="159" selection-start-column="27" selection-end-line="159" selection-end-column="27" />
           <folding />
         </state>
       </provider>

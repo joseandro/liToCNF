@@ -51,25 +51,24 @@ def transAiAndDoTransMult(ai, isNeg, M):
     # pxi to be negated as well in here
     ai = str("{0:b}".format(ai))
     result = []
-    nOfI = 0
 
     global px
 
     # Formula 16
-    for i in range(0, M):
+    for i in range(0, M+1): # loop from 0 up to M, inclusive
         if len(ai) - 1 >= i :
             if int(ai[i]) == 1:
-                nOfI += 1
+                # propositions pk(i), k E Bai can be eliminated by substituting them by pxi
 
                 # k E Ba(i)
                 # (-pk(i) - pxi) * (pk(i) + pxi)
                 if isNeg :
-                    result.append([-1 * getUniqueId(), -1 * px[i]])
-                    result.append([getUniqueId(), px[i]])
+                    result.append([-1 * px[i], -1 * px[i]])
+                    result.append([px[i], px[i]])
                 else:
                     # (-pk(i) + pxi) * (pk(i) - pxi)
-                    result.append([-1 * getUniqueId(), px[i]])
-                    result.append([getUniqueId(), -1 * px[i]])
+                    result.append([-1 * px[i], px[i]])
+                    result.append([px[i], -1 * px[i]])
             else:
                 # k E/ Ba(i)
                 # -pk(i)
@@ -78,10 +77,6 @@ def transAiAndDoTransMult(ai, isNeg, M):
             # k E/ Ba(i)
             # -pk(i)
             result.append([-1 * getUniqueId()])
-
-    if  int(nOfI+M) != int(len(result)) :
-        print("Problem found during execution, number of clauses != M + |{K=1 in Bai}|")
-        print("Number of clauses = ",len(result), "M + |{K=1 in Bai} = ", M+nOfI)
 
     return result
 
@@ -93,16 +88,17 @@ def calculateM(_arr):
     if aMax == 0:
         return 1
 
-    return 1 + int(round(np.ceil(np.log2(aMax))))
+    return 1 + int(np.round(np.log2(aMax)))
 
 def transAiXi(U, a, x, M):
+    M_U = calculateM(U) + int(np.round(np.log2(len(U))))
+
     if len(U) == 1:
-        return transAiAndDoTransMult(a[U[0]], U[0] in x, M)
+        return transAiAndDoTransMult(a[U[0]], U[0] in x, M_U)
 
     _ = splitArray(U)
     V = _['floor']
     W = _['ceiling']
-    M_U = calculateM(U) + int(np.floor(np.log(len(U))))
 
     return transAiXi(V, a, x, M) + transAiXi(W, a, x, M) + transPlus(M_U)
 
@@ -150,14 +146,18 @@ def calculateILeftSide(a, x, M):
 
 
 def calculateIRightSide(b, M):
+    M = calculateM([b])
+    M = M + int(np.round(np.log2(M)))
+
     b = str("{0:b}".format(b))
     result = []
     p = []
     counter = 0
-    for k in range(0, M):
+
+    for k in range(0, M+1):
         p.append(getUniqueId())
 
-    for k in range(0, M):
+    for k in range(0, M+1):
         clause = []
         if (len(b) -1 >= k and int(b[k]) == 0) or (len(b) -1 < k):
             counter += 1
