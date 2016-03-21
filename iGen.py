@@ -26,11 +26,22 @@ def getRandomInequations(C, N, M):
     result = []
     if isinstance(C, numbers.Integral) and isinstance(N, numbers.Integral) and isinstance(M, numbers.Integral):
         for i in range(M):  # Number of inequations
-            a = []
-            for j in range(N):  # Number of coefficients
-                a.append(randint(-1 * C, C))
             b = randint(0, C)
             s = randint(0, 1)  # Expression signal
+
+            a = []
+            sum = 0
+            while True:
+                for j in range(N):  # Number of coefficients
+                    coeff = randint(-1 * C, C)
+                    a.append(coeff)
+
+                    if (coeff < 0):
+                        coeff *= -1
+                    sum += coeff
+                if sum > b:
+                    break
+
             dicta = {"a": a, "s": s, "b": b}
             result.append(dicta)
     else:

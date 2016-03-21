@@ -6,8 +6,9 @@ import numpy as np
 
 global_index = 0
 pk = []
-px = []
-ck = []
+pk_c = []
+ck_kminus = []
+ck_kplus = []
 
 def splitArray(arr):
     ceiling = arr[:len(arr)/2]
@@ -18,33 +19,25 @@ def splitArray(arr):
 def getUniqueId():
     global global_index
     global_index += 1
-    return global_index
+    return global_index-1
 
 def resetUniqueIdSeeder():
     global global_index
     global_index = 0
 
 def populateControls(M):
-    global pk, px, ck
+    global pk, pk_c, ck_kminus, ck_kplus
     resetUniqueIdSeeder()
 
     pk = []
-    px = []
-    ck = []
-
-    # We split it this way so that these lists will contain continuous
-    # intervals.
+    pk_c = []
+    ck_kminus = []
+    ck_kplus = []
     for i in range(0, M):
-        px.append(getUniqueId())
-
-    for i in range(0, M):
-        pk.append(getUniqueId())
-
-    for i in range(0, M):
-        arr = []
-        for j in range(0, M):
-            arr.append(j)
-        ck.append(arr)
+        pk.insert(i, getUniqueId())
+        pk_c.insert(i, getUniqueId())
+        ck_kminus.insert(i, getUniqueId())
+        ck_kplus.insert(i, getUniqueId())
 
 def transAiAndDoTransMult(ai, isNeg, M):
     # keep in mind that negative coefficients require
@@ -53,23 +46,20 @@ def transAiAndDoTransMult(ai, isNeg, M):
     result = []
     nOfI = 0
 
-    global px
-
     # Formula 16
     for i in range(0, M):
         if len(ai) - 1 >= i :
             if int(ai[i]) == 1:
                 nOfI += 1
-
                 # k E Ba(i)
                 # (-pk(i) - pxi) * (pk(i) + pxi)
                 if isNeg :
-                    result.append([-1 * getUniqueId(), -1 * px[i]])
-                    result.append([getUniqueId(), px[i]])
+                    result.append([-1 * getUniqueId(), -1 * getUniqueId()])
+                    result.append([getUniqueId(), getUniqueId()])
                 else:
                     # (-pk(i) + pxi) * (pk(i) - pxi)
-                    result.append([-1 * getUniqueId(), px[i]])
-                    result.append([getUniqueId(), -1 * px[i]])
+                    result.append([-1 * getUniqueId(), getUniqueId()])
+                    result.append([getUniqueId(), -1 * getUniqueId()])
             else:
                 # k E/ Ba(i)
                 # -pk(i)
@@ -102,9 +92,8 @@ def transAiXi(U, a, x, M):
     _ = splitArray(U)
     V = _['floor']
     W = _['ceiling']
-    M_U = calculateM(U) + int(np.floor(np.log(len(U))))
 
-    return transAiXi(V, a, x, M) + transAiXi(W, a, x, M) + transPlus(M_U)
+    return transAiXi(V, a, x, M) + transAiXi(W, a, x, M) + transPlus(calculateM(U))
 
 def transPlus(M):
     result = []
@@ -117,28 +106,76 @@ def transPlus(M):
     # Formula 11
     result.append([p0_U, p0_V,-1*p0_W])
     result.append([p0_U, -1*p0_V, p0_W])
+    # Equivalence by implication:
+    # All clauses beginning with a negated proposition letter are left out
+    # result.append([-1*p0_U, -1*p0_V,-1*p0_W])
+    # result.append([-1*p0_U, p0_V, p0_W])
 
     # Formula 12
     result.append([c01_U, -1*p0_V, -1*p0_W])
+    # Equivalence by implication:
+    # All clauses beginning with a negated proposition letter are left out
+    # result.append([-1*c01_U, p0_V])
+    # result.append([-1*c01_U, p0_W])
 
-    for i in range(1, M+1): #loops from 0 up to M, inclusive
+    for i in range(0, M): #loops from 0 up to M-1
         pk_U = getUniqueId()
         pk_V = getUniqueId()
         pk_W = getUniqueId()
         ck_m1_k_U = getUniqueId()
         ck_k_p1_U = getUniqueId()
 
-        # Formula 13
-        result.append([pk_U, -1*pk_V, pk_W, ck_m1_k_U])
-        result.append([pk_U, -1*pk_V, -1*pk_W, -1*ck_m1_k_U])
-        result.append([pk_U, pk_V, -1*pk_W, ck_m1_k_U])
-        result.append([pk_U, pk_V, pk_W, -1*ck_m1_k_U])
+        if i == 0:
+            # Formula 13
+            result.append([p0_U, -1*p0_V, p0_W, c01_U])
+            result.append([p0_U, -1*p0_V, -1*p0_W, -1*c01_U])
+            result.append([p0_U, p0_V, -1*p0_W, c01_U])
+            result.append([p0_U, p0_V, p0_W, -1*c01_U])
+            # Equivalence by implication:
+            # All clauses beginning with a negated proposition letter are left out
+            # result.append([-1*p0_U, p0_V, p0_W, c01_U])
+            # result.append([-1*p0_U, p0_V, -1*p0_W, -1*c01_U])
+            # result.append([-1*p0_U, -1*p0_V, -1*p0_W, c01_U])
+            # result.append([-1*p0_U, -1*p0_V, p0_W, -1*c01_U])
 
-        # Formula 14
-        if (i < M):
-            result.append([ck_k_p1_U, -1*pk_V, -1*pk_W])
-            result.append([ck_k_p1_U, -1*pk_V, -1*ck_m1_k_U])
-            result.append([ck_k_p1_U, -1*pk_W, -1*ck_m1_k_U])
+            if (i < M - 1):
+                # Formula 14
+                result.append([ck_k_p1_U, -1*p0_V, -1*p0_W])
+                result.append([ck_k_p1_U, -1*p0_V, -1*c01_U])
+                result.append([ck_k_p1_U, -1*p0_W, -1*c01_U])
+                # Equivalence by implication:
+                # All clauses beginning with a negated proposition letter are left out
+                # result.append([-1*ck_k_p1_U, p0_V, p0_W])
+                # result.append([-1*ck_k_p1_U, p0_V, c01_U])
+                # result.append([-1*ck_k_p1_U, p0_W, c01_U])
+
+        else:
+            # Formula 13
+            result.append([pk_U, -1*pk_V, pk_W, ck_m1_k_U])
+            result.append([pk_U, -1*pk_V, -1*pk_W, -1*ck_m1_k_U])
+            result.append([pk_U, pk_V, -1*pk_W, ck_m1_k_U])
+            result.append([pk_U, pk_V, pk_W, -1*ck_m1_k_U])
+            # Equivalence by implication:
+            # All clauses beginning with a negated proposition letter are left out
+            # result.append([-1*pk_U, pk_V, pk_W, ck_m1_k_U])
+            # result.append([-1*pk_U, pk_V, -1*pk_W, -1*ck_m1_k_U])
+            # result.append([-1*pk_U, -1*pk_V, -1*pk_W, ck_m1_k_U])
+            # result.append([-1*pk_U, -1*pk_V, pk_W, -1*ck_m1_k_U])
+
+            # Formula 14
+            if (i < M - 1):
+                result.append([ck_k_p1_U, -1*pk_V, -1*pk_W])
+                result.append([ck_k_p1_U, -1*pk_V, -1*ck_m1_k_U])
+                result.append([ck_k_p1_U, -1*pk_W, -1*ck_m1_k_U])
+                # Equivalence by implication:
+                # All clauses beginning with a negated proposition letter are left out
+                # result.append([-1*ck_k_p1_U, pk_V, pk_W])
+                # result.append([-1*ck_k_p1_U, pk_V, ck_m1_k_U])
+                # result.append([-1*ck_k_p1_U, pk_W, ck_m1_k_U])
+
+    if len(result) != 7*M:
+        print("Problem found, number of clauses != 7*M")
+        print("Number of clauses = ",len(result), "7*M = ", 7*M)
 
     return result
 
@@ -189,12 +226,7 @@ def transform(iq):
     for i, v in enumerate(iq) :
         a = v['a']
 
-        if a == False:
-            result.append(False)
-            continue # Equation is invalid
-
-        if len(a) < 1:
-            result.append(False)
+        if len(a) < 1 :
             continue # Empty arrays are not allowed
 
         x = v['x']
