@@ -5,9 +5,12 @@
 import numpy as np
 
 global_index = 0
-pk = []
+arr_pk_u = []
+arr_pk_v = []
+arr_pk_w = []
+arr_ck_p = []
 px = []
-ck = []
+a  = {}
 
 def splitArray(arr):
     ceiling = arr[:len(arr)/2]
@@ -24,59 +27,77 @@ def resetUniqueIdSeeder():
     global global_index
     global_index = 0
 
-def populateControls(M):
-    global pk, px, ck
+def populateControls(I):
+    global arr_pk_u, arr_pk_v, arr_pk_w, arr_ck_p, a
     resetUniqueIdSeeder()
 
-    pk = []
-    px = []
-    ck = []
+    arr_pk_u = []
+    arr_pk_v = []
+    arr_pk_w = []
+    arr_ck_p = []
+    a  = {}
+    M = len(I)+1
 
     # We split it this way so that these lists will contain continuous
     # intervals.
-    for i in range(0, M+1):
-        px.append(getUniqueId())
+    for i in range(0, M):
+        arr_pk_u.append(getUniqueId())
 
-    for i in range(0, M+1):
-        pk.append(getUniqueId())
+    for i in range(0, M):
+        arr_pk_v.append(getUniqueId())
 
-    for i in range(0, M+1):
-        arr = []
-        for j in range(0, M+1):
-            arr.append(j)
-        ck.append(arr)
+    for i in range(0, M):
+        arr_pk_w.append(getUniqueId())
+
+    for i in range(0, M):
+        arr_ck_p.append(getUniqueId())
 
 def transAiAndDoTransMult(ai, isNeg, M):
+    global a
+
     # keep in mind that negative coefficients require
     # pxi to be negated as well in here
     ai = str("{0:b}".format(ai))
+    pxi = getUniqueId()
     result = []
 
-    global px
+    isRepeated = False
 
+    # We reuse coefficients that were already calculated
+    if a.get(ai) is None:
+        a[ai] = []
+    else:
+        isRepeated = True
+    
     # Formula 16
-    for i in range(0, M+1): # loop from 0 up to M, inclusive
+    for i in range(0, M): # loop from 0 up to M-1, inclusive
+        pki = None
+        if isRepeated == True:
+            pki = a.get(ai)[i]
+        else:
+            pki = getUniqueId()
+            a.get(ai).append(pki)
+
         if len(ai) - 1 >= i :
             if int(ai[i]) == 1:
                 # propositions pk(i), k E Bai can be eliminated by substituting them by pxi
-
                 # k E Ba(i)
                 # (-pk(i) - pxi) * (pk(i) + pxi)
                 if isNeg :
-                    result.append([-1 * px[i], -1 * px[i]])
-                    result.append([px[i], px[i]])
+                    result.append([-1 * pki, -1 * pxi])
+                    result.append([pki, pxi])
                 else:
                     # (-pk(i) + pxi) * (pk(i) - pxi)
-                    result.append([-1 * px[i], px[i]])
-                    result.append([px[i], -1 * px[i]])
+                    result.append([-1 * pki, pxi])
+                    result.append([pki, -1 * pxi])
             else:
                 # k E/ Ba(i)
                 # -pk(i)
-                result.append([-1 * getUniqueId()])
+                result.append([-1 * pki])
         else:
             # k E/ Ba(i)
             # -pk(i)
-            result.append([-1 * getUniqueId()])
+            result.append([-1 * pki])
 
     return result
 
@@ -88,71 +109,80 @@ def calculateM(_arr):
     if aMax == 0:
         return 1
 
-    return 1 + int(np.round(np.log2(aMax)))
+    return 1 + int(np.floor(np.log2(aMax)))
 
-def transAiXi(U, a, x, M):
-    M_U = calculateM(U) + int(np.round(np.log2(len(U))))
-
+def transAiXi(U, a, x, M): 
     if len(U) == 1:
-        return transAiAndDoTransMult(a[U[0]], U[0] in x, M_U)
+        return transAiAndDoTransMult(a[U[0]], U[0] in x, M)
 
     _ = splitArray(U)
     V = _['floor']
     W = _['ceiling']
+    
+    M_U = calculateM(U) + int(np.floor(np.log2(len(U))))
+    return transAiXi(V, a, x, M) + transAiXi(W, a, x, M) + transPlus(U, V, W, M_U)
 
-    return transAiXi(V, a, x, M) + transAiXi(W, a, x, M) + transPlus(M_U)
 
-def transPlus(M):
+def transPlus(U, V, W, M):
+    global arr_pk_u, arr_pk_v, arr_pk_w, arr_ck_p
     result = []
-
-    p0_U = getUniqueId()
-    p0_V = getUniqueId()
-    p0_W = getUniqueId()
-    c01_U = getUniqueId()
-
+    
     # Formula 11
-    result.append([p0_U, p0_V,-1*p0_W])
-    result.append([p0_U, -1*p0_V, p0_W])
+    result.append([arr_pk_u[0], arr_pk_v[0],-1*arr_pk_w[0]])
+    result.append([arr_pk_u[0], -1*arr_pk_v[0], arr_pk_w[0]])
 
+    ck_plus = arr_ck_p[0]
+    
     # Formula 12
-    result.append([c01_U, -1*p0_V, -1*p0_W])
+    result.append([ck_plus, -1*arr_pk_v[0], -1*arr_pk_w[0]])
 
     for i in range(1, M+1): #loops from 0 up to M, inclusive
-        pk_U = getUniqueId()
-        pk_V = getUniqueId()
-        pk_W = getUniqueId()
-        ck_m1_k_U = getUniqueId()
-        ck_k_p1_U = getUniqueId()
+        pk_u = arr_pk_u[i]
+        pk_v = arr_pk_v[i]
+        pk_w = arr_pk_w[i]
+        
+        ck_minus = ck_plus
+        ck_plus = arr_ck_p[i]
 
-        # Formula 13
-        result.append([pk_U, -1*pk_V, pk_W, ck_m1_k_U])
-        result.append([pk_U, -1*pk_V, -1*pk_W, -1*ck_m1_k_U])
-        result.append([pk_U, pk_V, -1*pk_W, ck_m1_k_U])
-        result.append([pk_U, pk_V, pk_W, -1*ck_m1_k_U])
+        if i == M - 1 and M % 2 == 1:
+            pk_w = None
 
-        # Formula 14
-        if (i < M):
-            result.append([ck_k_p1_U, -1*pk_V, -1*pk_W])
-            result.append([ck_k_p1_U, -1*pk_V, -1*ck_m1_k_U])
-            result.append([ck_k_p1_U, -1*pk_W, -1*ck_m1_k_U])
+        if pk_w is None:
+            # Formula 13
+            result.append([pk_u, -1*pk_v, ck_minus])
+            result.append([pk_u, -1*pk_v, -1*ck_minus])
+            result.append([pk_u, pk_v, ck_minus])
+            result.append([pk_u, pk_v, -1*ck_minus])
+            
+            # Formula 14 will never be executed here
+        else :
+            # Formula 13
+            result.append([pk_u, -1*pk_v, pk_w, ck_minus])
+            result.append([pk_u, -1*pk_v, -1*pk_w, -1*ck_minus])
+            result.append([pk_u, pk_v, -1*pk_w, ck_minus])
+            result.append([pk_u, pk_v, pk_w, -1*ck_minus])
 
+            # Formula 14
+            if (i < M - 1):
+                result.append([ck_plus, -1*pk_v, -1*pk_w])
+                result.append([ck_plus, -1*pk_v, -1*ck_minus])
+                result.append([ck_plus, -1*pk_w, -1*ck_minus])
     return result
 
-def calculateILeftSide(a, x, M):
-    populateControls(M)
+def calculateILeftSide(a, x):
+    M = calculateM(a)
+    populateControls(range(0, len(a)))
     left = transAiXi(range(0, len(a)), a, x, M)
 
     return left
 
 
-def calculateIRightSide(b, M):
+def calculateIRightSide(b):
     M = calculateM([b])
-    M = M + int(np.round(np.log2(M)))
 
     b = str("{0:b}".format(b))
     result = []
     p = []
-    counter = 0
 
     for k in range(0, M+1):
         p.append(getUniqueId())
@@ -160,7 +190,6 @@ def calculateIRightSide(b, M):
     for k in range(0, M+1):
         clause = []
         if (len(b) -1 >= k and int(b[k]) == 0) or (len(b) -1 < k):
-            counter += 1
             clause.append(-1*p[k])
             if len(b) - 1 >= k: # we still can loop through B
                 for j in range(k+1, M):
@@ -199,10 +228,9 @@ def transform(iq):
 
         x = v['x']
         b = v['b']
-        M = calculateM(a)
 
-        iLeftSide = calculateILeftSide(a,x, M)
-        iRightSide = calculateIRightSide(b, M)
+        iLeftSide = calculateILeftSide(a, x)
+        iRightSide = calculateIRightSide(b)
 
         result.append(iLeftSide+iRightSide) # Concatenate both lists containing CNFs only data
         # print("Total number of clauses = ", len(iLeftSide+iRightSide))
