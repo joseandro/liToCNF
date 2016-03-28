@@ -119,33 +119,38 @@ def transAiXi(U, a, x, M):
     V = _['floor']
     W = _['ceiling']
     
-    M_U = calculateM(U) + int(np.floor(np.log2(len(U))))
-    return transAiXi(V, a, x, M) + transAiXi(W, a, x, M) + transPlus(U, V, W, M_U)
+    return transAiXi(V, a, x, M) + transAiXi(W, a, x, M) + transPlus(U, V, W)
 
 
-def transPlus(U, V, W, M):
+def transPlus(U, V, W):
     global arr_pk_u, arr_pk_v, arr_pk_w, arr_ck_p
     result = []
     
     # Formula 11
-    result.append([arr_pk_u[0], arr_pk_v[0],-1*arr_pk_w[0]])
-    result.append([arr_pk_u[0], -1*arr_pk_v[0], arr_pk_w[0]])
+    result.append([arr_pk_u[U[0]], arr_pk_v[V[0]],-1*arr_pk_w[W[0]]])
+    result.append([arr_pk_u[U[0]], -1*arr_pk_v[V[0]], arr_pk_w[W[0]]])
+    result.append([-1*arr_pk_u[U[0]], -1*arr_pk_v[V[0]],-1*arr_pk_w[W[0]]])
+    result.append([-1*arr_pk_u[U[0]], arr_pk_v[V[0]], arr_pk_w[W[0]]])
 
-    ck_plus = arr_ck_p[0]
+    ck_plus = arr_ck_p[U[0]]
     
     # Formula 12
-    result.append([ck_plus, -1*arr_pk_v[0], -1*arr_pk_w[0]])
+    result.append([ck_plus, -1*arr_pk_v[V[0]], -1*arr_pk_w[W[0]]])
+    result.append([-1*ck_plus, arr_pk_v[V[0]]])
+    result.append([-1*ck_plus, arr_pk_w[W[0]]])
 
-    for i in range(1, M+1): #loops from 0 up to M, inclusive
-        pk_u = arr_pk_u[i]
-        pk_v = arr_pk_v[i]
-        pk_w = arr_pk_w[i]
+    M = len(V)
+    for i in range(1, M): #loops from 0 up to M-1, inclusive
+        pk_u = arr_pk_u[U[i]]
+        pk_v = arr_pk_v[V[i]]
         
         ck_minus = ck_plus
-        ck_plus = arr_ck_p[i]
+        ck_plus = arr_ck_p[U[i]]
 
-        if i == M - 1 and M % 2 == 1:
+        if i >= len(W):
             pk_w = None
+        else:
+            pk_w = arr_pk_w[W[i]]
 
         if pk_w is None:
             # Formula 13
@@ -153,6 +158,14 @@ def transPlus(U, V, W, M):
             result.append([pk_u, -1*pk_v, -1*ck_minus])
             result.append([pk_u, pk_v, ck_minus])
             result.append([pk_u, pk_v, -1*ck_minus])
+            
+            result.append([-1*pk_u, pk_v, ck_minus])
+            result.append([-1*pk_u, pk_v, -1*ck_minus])
+            
+            # These must be left out as they are exactly the oppose
+            # to two clauses above
+            # result.append([-1*pk_u, -1*pk_v, ck_minus])
+            # result.append([-1*pk_u, -1*pk_v, -1*ck_minus])
             
             # Formula 14 will never be executed here
         else :
@@ -162,11 +175,20 @@ def transPlus(U, V, W, M):
             result.append([pk_u, pk_v, -1*pk_w, ck_minus])
             result.append([pk_u, pk_v, pk_w, -1*ck_minus])
 
+            result.append([-1*pk_u, pk_v, pk_w, ck_minus])
+            result.append([-1*pk_u, pk_v, -1*pk_w, -1*ck_minus])
+            result.append([-1*pk_u, -1*pk_v, -1*pk_w, ck_minus])
+            result.append([-1*pk_u, -1*pk_v, pk_w, -1*ck_minus])
+
             # Formula 14
             if (i < M - 1):
                 result.append([ck_plus, -1*pk_v, -1*pk_w])
                 result.append([ck_plus, -1*pk_v, -1*ck_minus])
                 result.append([ck_plus, -1*pk_w, -1*ck_minus])
+
+                result.append([-1*ck_plus, pk_v, pk_w])
+                result.append([-1*ck_plus, pk_v, ck_minus])
+                result.append([-1*ck_plus, pk_w, ck_minus])
     return result
 
 def calculateILeftSide(a, x):
