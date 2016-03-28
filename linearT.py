@@ -255,5 +255,4 @@ def transform(iq):
         iRightSide = calculateIRightSide(b)
 
         result.append(iLeftSide+iRightSide) # Concatenate both lists containing CNFs only data
-        # print("Total number of clauses = ", len(iLeftSide+iRightSide))
     return result
